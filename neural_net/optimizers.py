@@ -10,9 +10,6 @@ class uniform(object):
         self.sizes = size
         return (self.max_value - self.min_value) * np.random.random_sample(size=self.sizes) + self.min_value
 
-    def get_config(self):
-        return {}
-
 
 class normal(object):
     def __init__(self, mean=0, std=1):
@@ -23,20 +20,12 @@ class normal(object):
         self.sizes = size
         return self.standard_deviation * np.random.standard_normal(size=self.sizes) + self.mean
 
-    def get_config(self):
-        return {}
-
 
 class zeros(object):
-    def __init__(self):
-        pass
 
-    def fn(self, size):
-        self.sizes = size
+    @staticmethod
+    def fn(size):
         return np.zeros(size)
-
-    def get_config(self):
-        return {}
 
 
 class learning_rate(object):
@@ -57,7 +46,10 @@ class learning_rate(object):
         return self.begin
 
     def linear(self):
-        pass
+        return self.begin - (self.begin - self.to) * (self.epoch / (self.epochs - 1 + 1.0e-10))
 
     def quadratic(self):
         return self.begin - (self.begin - self.to) * (self.epoch / (self.epochs - 1 + 1.0e-10))**2
+
+    def get_config(self):
+        pass

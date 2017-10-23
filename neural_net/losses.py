@@ -25,4 +25,5 @@ class cross_entropy(object):
 
     @staticmethod
     def prime(y, a, z, ac):
+        # print(y, a)
         return a - y
