@@ -18,58 +18,61 @@ class Activation(object):
         self.input_shape = None
         self.output_shape = None
 
+    def fn(self, z, **kwargs):
+        return self.func(z)
+
+    def prime(self, E, z, W1):
+        dz = self.funcP(z)
+        error = np.dot(E, W1.T) * dz
+        return error, None, W1
+
 
 class sigmoid(Activation):
     @staticmethod
-    def fn(z):
+    def func(z):
         return 1.0 / (1.0 + np.exp(-z))
 
     @staticmethod
-    def prime(z):
+    def funcP(z):
         return np.exp(-z) / np.power(1 + np.exp(-z), 2)
 
 
 class softmax(Activation):
     @staticmethod
-    def fn(z):
-        # print(z)
+    def func(z):
         z -= np.amax(z, axis=1, keepdims=True)
-        # print(z)
-        # print(np.exp(z) / np.sum(np.exp(z), axis=1, keepdims=True), '\n')
         return np.exp(z) / np.sum(np.exp(z), axis=1, keepdims=True)
 
     @staticmethod
-    def prime(z):
-        return softmax.fn(z) * (1 - softmax.fn(z))
+    def funcP(z):
+        return softmax.func(z) * (1 - softmax.func(z))
 
 
 class tanh(Activation):
     @staticmethod
-    def fn(z):
+    def func(z):
         return np.tanh(z)
 
     @staticmethod
-    def prime(z):
+    def funcP(z):
         return 1 - np.power(np.tanh(z), 2)
 
 
 class relu(Activation):
     @staticmethod
-    def fn(z):
+    def func(z):
         return np.maximum(z, 0)
 
     @staticmethod
-    def prime(z):
+    def funcP(z):
         return np.greater_equal(z, 0)
 
 
 class leaky_relu(Activation):
     @staticmethod
-    def fn(z):
+    def func(z):
         return np.maximum(z, 0) + 0.01 * np.minimum(z, 0)
 
     @staticmethod
-    def prime(E, z, W1):
-        dz = np.greater_equal(z, 0) + 0.01 * np.less(z, 0)
-        error = np.dot(E, W1.T) * dz
-        return error, None, W1
+    def funcP(z):
+        return np.greater_equal(z, 0) + 0.01 * np.less(z, 0)
