@@ -2,7 +2,7 @@
 Deep Convolutional Neural Network
 Inspired by Theano
 
-89.5% after 35 epochs (12 min on MacBook Pro)
+98.5% after 35 epochs (12 min on MacBook Pro)
 
 
 ## Helpfull links
