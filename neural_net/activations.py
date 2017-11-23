@@ -9,54 +9,70 @@ Four types of activations with their derivates are available:
 - Leaky ReLU
 """
 import numpy as np
+from .layers import Layer
 
 
-class sigmoid(object):
+class Activation(Layer):
+    """docstring for Activation."""
+
+    def __init__(self):
+        self.input_shape = None
+        self.output_shape = None
+
+    def fn(self, z, **kwargs):
+        self.z = z
+        return self.func(z)
+
+    def prime(self, error, activation_1, **kwargs):
+        return error * self.funcP(self.z)
+
+
+class sigmoid(Activation):
     @staticmethod
-    def fn(z):
+    def func(z):
         return 1.0 / (1.0 + np.exp(-z))
 
     @staticmethod
-    def prime(z):
+    def funcP(z):
         return np.exp(-z) / np.power(1 + np.exp(-z), 2)
 
 
-class softmax(object):
+class softmax(Activation):
     @staticmethod
-    def fn(z):
-        z -= np.amax(z, axis=0, keepdims=True)
-        return np.exp(z) / np.sum(np.exp(z))
+    def func(z):
+        z -= np.amax(z, axis=1, keepdims=True)
+        return np.exp(z) / np.sum(np.exp(z), axis=1, keepdims=True)
 
     @staticmethod
-    def prime(z):
-        return softmax.fn(z) * (1 - softmax.fn(z))
+    def funcP(z):
+        return softmax.func(z) * (1 - softmax.func(z))
 
 
-class tanh(object):
+class tanh(Activation):
     @staticmethod
-    def fn(z):
+    def func(z):
         return np.tanh(z)
 
     @staticmethod
-    def prime(z):
+    def funcP(z):
         return 1 - np.power(np.tanh(z), 2)
 
 
-class relu(object):
+class relu(Activation):
     @staticmethod
-    def fn(z):
+    def func(z):
         return np.maximum(z, 0)
 
     @staticmethod
-    def prime(z):
+    def funcP(z):
         return np.greater_equal(z, 0)
 
 
-class leaky_relu(object):
+class leaky_relu(Activation):
     @staticmethod
-    def fn(z):
+    def func(z):
         return np.maximum(z, 0) + 0.01 * np.minimum(z, 0)
 
     @staticmethod
-    def prime(z):
+    def funcP(z):
         return np.greater_equal(z, 0) + 0.01 * np.less(z, 0)

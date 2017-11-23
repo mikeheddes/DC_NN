@@ -11,7 +11,7 @@ import numpy as np
 class quadratic(object):
     @staticmethod
     def fn(y, a):
-        return np.power(y - a, 2) / 2
+        return np.sum(np.power(y - a, 2)) / 2
 
     @staticmethod
     def prime(y, a, z, ac):
@@ -21,7 +21,7 @@ class quadratic(object):
 class cross_entropy(object):
     @staticmethod
     def fn(y, a):
-        return -(y * np.log(a) + (1 - y) * np.log(1 - a))
+        return -np.sum(y * np.log(a) + (1 - y) * np.log(1 - a))
 
     @staticmethod
     def prime(y, a, z, ac):
