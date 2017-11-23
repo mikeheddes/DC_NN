@@ -9,9 +9,10 @@ Four types of activations with their derivates are available:
 - Leaky ReLU
 """
 import numpy as np
+from .layers import Layer
 
 
-class Activation(object):
+class Activation(Layer):
     """docstring for Activation."""
 
     def __init__(self):
@@ -19,12 +20,11 @@ class Activation(object):
         self.output_shape = None
 
     def fn(self, z, **kwargs):
+        self.z = z
         return self.func(z)
 
-    def prime(self, E, z, W1):
-        dz = self.funcP(z)
-        error = np.dot(E, W1.T) * dz
-        return error, None, W1
+    def prime(self, error, activation_1, **kwargs):
+        return error * self.funcP(self.z)
 
 
 class sigmoid(Activation):

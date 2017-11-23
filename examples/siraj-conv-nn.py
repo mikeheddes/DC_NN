@@ -46,37 +46,37 @@ class LiteCNN:
     def __init__(self):
         # a place to store the layers
         self.layers = []
-    # size of pooling area for max pooling
+        # size of pooling area for max pooling
         self.pool_size = None
 
     def load_weights(self, weights):
         assert not self.layers, "Weights can only be loaded once!"
-    # add the saved matrix values to the convolutional network
+        # add the saved matrix values to the convolutional network
         for k in range(len(weights.keys())):
             self.layers.append(weights['layer_{}'.format(k)])
 
     def predict(self, X):
         # here is where the network magic happens at a high level
-    h = self.cnn_layer(X, layer_i=0, border_mode="full")
-    X = h
-    h = self.relu_layer(X)
-    X = h
-    h = self.cnn_layer(X, layer_i=2, border_mode="valid")
-    X = h
-    h = self.relu_layer(X)
-    X = h
-    h = self.maxpooling_layer(X)
-    X = h
-    h = self.dropout_layer(X, .25)
-    X = h
-    h = self.flatten_layer(X, layer_i=7)
-    X = h
-    h = self.dense_layer(X, fully, layer_i=10)
-    x = H
-    h = self.softmax_layer2D(X)
-    x = h
-    max_i = self.classify(X)
-    return max_i[0]
+        h = self.cnn_layer(X, layer_i=0, border_mode="full")
+        X = h
+        h = self.relu_layer(X)
+        X = h
+        h = self.cnn_layer(X, layer_i=2, border_mode="valid")
+        X = h
+        h = self.relu_layer(X)
+        X = h
+        h = self.maxpooling_layer(X)
+        X = h
+        h = self.dropout_layer(X, .25)
+        X = h
+        h = self.flatten_layer(X, layer_i=7)
+        X = h
+        h = self.dense_layer(X, fully, layer_i=10)
+        x = H
+        h = self.softmax_layer2D(X)
+        x = h
+        max_i = self.classify(X)
+        return max_i[0]
 
     # given our feature map we've learned from convolving around the image
     # lets make it more dense by performing pooling, specifically max pooling
@@ -88,9 +88,9 @@ class LiteCNN:
         conv_dim = convolved_features.shape[2]
         res_dim = int(conv_dim / self.pool_size)  # assumed square shape
 
-    # initialize our more dense feature list as empty
+        # initialize our more dense feature list as empty
         pooled_features = np.zeros((nb_features, nb_images, res_dim, res_dim))
-    # for each image
+        # for each image
         for image_i in range(nb_images):
             # and each feature map
             for feature_i in range(nb_features):
@@ -100,19 +100,17 @@ class LiteCNN:
                     row_start = pool_row * self.pool_size
                     row_end = row_start + self.pool_size
 
-    # for each column (so its a 2D iteration)
+                    # for each column (so its a 2D iteration)
                     for pool_col in range(res_dim):
                         # define start and end points
                         col_start = pool_col * self.pool_size
                         col_end = col_start + self.pool_size
 
-            # define a patch given our defined starting ending points
-                        patch = convolved_features[feature_i, image_i,
-                                                   row_start: row_end, col_start: col_end]
-            # then take the max value from that patch
-            # store it. this is our new learned feature/filter
-                        pooled_features[feature_i, image_i,
-                                        pool_row, pool_col] = np.max(patch)
+                        # define a patch given our defined starting ending points
+                        patch = convolved_features[feature_i, image_i, row_start: row_end, col_start: col_end]
+                        # then take the max value from that patch
+                        # store it. this is our new learned feature/filter
+                        pooled_features[feature_i, image_i, pool_row, pool_col] = np.max(patch)
         return pooled_features
 
     # convolution is the most important of the matrix operations here
@@ -121,49 +119,48 @@ class LiteCNN:
         # we'll store our feature maps and bias value in these 2 vars
         features = self.layers[layer_i]["param_0"]
         bias = self.layers[layer_i]["param_1"]
-    # how big is our filter/patch?
+        # how big is our filter/patch?
         patch_dim = features[0].shape[-1]
-    # how many features do we have?
+        # how many features do we have?
         nb_features = features.shape[0]
-    # How big is our image?
+        # How big is our image?
         image_dim = X.shape[2]  # assume image square
-    # R G B values
+        # R G B values
         image_channels = X.shape[1]
-    # how many images do we have?
+        # how many images do we have?
         nb_images = X.shape[0]
 
-    # With border mode "full" you get an output that is the "full" size as the input.
-    # That means that the filter has to go outside the bounds of the input by "filter size / 2" -
-    # the area outside of the input is normally padded with zeros.
+        # With border mode "full" you get an output that is the "full" size as the input.
+        # That means that the filter has to go outside the bounds of the input by "filter size / 2" -
+        # the area outside of the input is normally padded with zeros.
         if border_mode == "full":
             conv_dim = image_dim + patch_dim - 1
-    # With border mode "valid" you get an output that is smaller than the input because
-    # the convolution is only computed where the input and the filter fully overlap.
+        # With border mode "valid" you get an output that is smaller than the input because
+        # the convolution is only computed where the input and the filter fully overlap.
         elif border_mode == "valid":
             conv_dim = image_dim - patch_dim + 1
 
-    # we'll initialize our feature matrix
-        convolved_features = np.zeros(
-            (nb_images, nb_features, conv_dim, conv_dim))
-    # then we'll iterate through each image that we have
+        # we'll initialize our feature matrix
+        convolved_features = np.zeros((nb_images, nb_features, conv_dim, conv_dim))
+        # then we'll iterate through each image that we have
         for image_i in range(nb_images):
             # for each feature
             for feature_i in range(nb_features):
                 # lets initialize a convolved image as empty
                 convolved_image = np.zeros((conv_dim, conv_dim))
-        # then for each channel (r g b )
+                # then for each channel (r g b )
                 for channel in range(image_channels):
                     # lets extract a feature from our feature map
                     feature = features[feature_i, channel, :, :]
-    # then define a channel specific part of our image
+                    # then define a channel specific part of our image
                     image = X[image_i, channel, :, :]
-    # perform convolution on our image, using a given feature filter
+                    # perform convolution on our image, using a given feature filter
                     convolved_image += self.convolve2d(
                         image, feature, border_mode)
 
-        # add a bias to our convoved image
+                # add a bias to our convoved image
                 convolved_image = convolved_image + bias[feature_i]
-        # add it to our list of convolved features (learnings)
+                # add it to our list of convolved features (learnings)
                 convolved_features[image_i, feature_i, :, :] = convolved_image
         return convolved_features
 
@@ -172,7 +169,7 @@ class LiteCNN:
         # so we'll initialize our weight and bias for this layer
         W = self.layers[layer_i]["param_0"]
         b = self.layers[layer_i]["param_1"]
-    # and multiply it by our input (dot product)
+        # and multiply it by our input (dot product)
         output = np.dot(X, W) + b
         return output
 
@@ -182,15 +179,14 @@ class LiteCNN:
         # we'll define the tensor dimensions of the image and the feature
         image_dim = np.array(image.shape)
         feature_dim = np.array(feature.shape)
-    # as well as a target dimension
+        # as well as a target dimension
         target_dim = image_dim + feature_dim - 1
-    # then we'll perform a fast fourier transform on both the input and the filter
-    # performing a convolution can be written as a for loop but for many convolutions
-    # this approach is too comp. expensive/slow. it can be performed orders of magnitude
-    # faster using a fast fourier transform.
-        fft_result = np.fft.fft2(image, target_dim) * \
-            np.fft.fft2(feature, target_dim)
-    # and set the result to our target
+        # then we'll perform a fast fourier transform on both the input and the filter
+        # performing a convolution can be written as a for loop but for many convolutions
+        # this approach is too comp. expensive/slow. it can be performed orders of magnitude
+        # faster using a fast fourier transform.
+        fft_result = np.fft.fft2(image, target_dim) * np.fft.fft2(feature, target_dim)
+        # and set the result to our target
         target = np.fft.ifft2(fft_result).real
 
         if border_mode == "valid":

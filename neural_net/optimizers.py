@@ -35,13 +35,15 @@ class zeros(object):
 
 
 class learning_rate(object):
-    def __init__(self, begin, func='CONSTANT', to=None):
+    def __init__(self, begin, func='CONSTANT', to=None, drops=10):
         self.begin = begin
         self.to = to
+        self.drops = drops
         self.func = func
         self.options = {'CONSTANT': self.constant,
                         'LINEAR': self.linear,
-                        'QUADRATIC': self.quadratic}
+                        'QUADRATIC': self.quadratic,
+                        'STEP': self.step}
 
     def fn(self, epoch, epochs):
         self.epoch = epoch
@@ -57,8 +59,11 @@ class learning_rate(object):
     def quadratic(self):
         return self.begin - (self.begin - self.to) * (self.epoch / (self.epochs - 1. + 1.0e-10))**2.
 
+    def step(self):
+        return self.begin - ((self.begin - self.to) / self.drops) * (self.epoch // (self.epochs / self.drops))
+
     def get_config(self):
-        pass
+        return {}
 
 
 class L1L2(object):
@@ -80,12 +85,12 @@ class L1L2(object):
             regularization += np.sum(self.l2 * np.square(x))
         return regularization
 
-    def prime(self, x, LR, dataset_size):
-        x_ = x
+    def prime(self, x):
+        x_ = np.zeros(x.shape)
         if self.l1:
-            x_ -= LR * self.l1 / dataset_size * np.greater_equal(x, 0)
+            x_ -= self.l1 / 10000 * np.sign(x)
         if self.l2:
-            x_ -= LR * self.l2 / dataset_size * x
+            x_ -= self.l2 / 10000 * x
         return x_
 
     def get_config(self):

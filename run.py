@@ -17,20 +17,19 @@ W = nn.variance()
 m.Add(nn.Input(784))
 m.Add(nn.Dense(200, W_init=W))
 m.Add(nn.leaky_relu())
-# m.add(nn.Dropout(rate=0.5))
+m.Add(nn.Dropout(pKeep=0.75))
 m.Add(nn.Dense(80, W_init=W))
 m.Add(nn.leaky_relu())
-# m.add(nn.Dropout(rate=0.5))
+m.Add(nn.Dropout(pKeep=0.75))
 m.Add(nn.Dense(10, W_init=W))
 m.Add(nn.softmax())
 
-m.Compile()
+m.Compile(optimizer=nn.L2())
 
-LR = nn.learning_rate(0.1, to=0.001, func="QUADRATIC")
+LR = nn.learning_rate(0.1, to=0.001, func="STEP")
 m.Train(list(training_data),
         loss=nn.cross_entropy,
         batch_size=10,
         epochs=50,
         learning_rate=LR,
-        optimizer=nn.L2(),
         test_data=list(test_data))

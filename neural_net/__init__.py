@@ -42,6 +42,9 @@ class Model():
             ValueError: In case the `layer` argument does not
                 know its input shape.
         """
+        # Check if layer is layer
+        if not isinstance(layer, Layer):
+            raise ValueError('%s is not a layer' % (layer.__class__.__name__))
         # Check if there are known outputs and if added layer is Input layer
         if not self.outputs and not isinstance(layer, Input):
             # Create an Input layer
@@ -65,10 +68,13 @@ class Model():
                 self.add(layer.activation())
         self.built = False
 
-    def Compile(self):
+    def Compile(self, optimizer=L1L2()):
         for layer in self.layers:
             if hasattr(layer, 'compile'):
                 layer.compile()
+            if hasattr(layer, 'optimizer'):
+                if not layer.optimizer:
+                    layer.optimizer = optimizer
 
     def forward(self, X, flag):
         self.calc = [X]
@@ -76,45 +82,28 @@ class Model():
         for l in range(1, len(self.layers)):
             addCalc(self.layers[l].fn(self.calc[-1], flag=flag))
 
-    def Train(self, training_data, loss=None, batch_size=1, epochs=0, test_data=None, learning_rate=None, optimizer=L1L2()):
+    def Train(self, training_data, loss=None, batch_size=1, epochs=0, test_data=None, learning_rate=None):
         self.loss = loss
         dataset_size = len(training_data)
         for epoch in range(epochs):
             np.random.shuffle(training_data)
             training_batches = [list(zip(*training_data[k:k + batch_size])) for k in range(0, dataset_size, batch_size)]
-            LR = learning_rate.fn(epoch, epochs)
+            self.LR = learning_rate.fn(epoch, epochs) / batch_size
             for batch in training_batches:
                 X = np.array(batch[0])
                 Y = np.array(batch[1])
                 self.forward(X, 'TRAIN')
-                d_b, d_W = self.backprop(Y)
-                for l in range(1, len(self.layers)):
-                    if d_W[l] is not None:
-                        self.layers[l].b -= LR / batch_size * np.sum(d_b[l], axis=0)
-                        self.layers[l].W -= LR / batch_size * d_W[l]
-                        self.layers[l].W = optimizer.prime(self.layers[l].W, LR, dataset_size)
+                self.backprop(Y)
             if test_data:
                 self.evaluate(test_data, epoch=epoch)
             else:
                 print("Epoch %s complete" % (epoch + 1))
 
     def backprop(self, Y):
-        l = self.layers
-        E = [self.loss.prime(Y, self.calc[-1], self.calc[-2], self.layers[-1])]
-        W1 = 0
-        delta_W = [None]
-        add_E = E.append
-        add_dW = delta_W.append
-        for i in range(len(self.layers) - 2, 0, -1):
-            err, dW, W = l[i].prime(E[-1], self.calc[i - 1], W1)
-            add_E(err)
-            add_dW(dW)
-            W1 = W
-        add_E(None)
-        E.reverse()
-        add_dW(None)
-        delta_W.reverse()
-        return E, delta_W
+        lay = self.layers
+        E = self.loss.prime(Y, self.calc[-1], self.calc[-2], lay[-1])
+        for i in range(len(lay) - 2, 0, -1):
+            E = lay[i].prime(E, self.calc[i - 1], learning_rate=self.LR)
 
     def evaluate(self, test_data, epoch=0):
         data = list(zip(*test_data))
