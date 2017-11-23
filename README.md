@@ -2,6 +2,8 @@
 Deep Convolutional Neural Network
 Inspired by Theano
 
+89.5% after 35 epochs (12 min on MacBook Pro)
+
 
 ## Helpfull links
 * http://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/
